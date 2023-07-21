@@ -1,0 +1,17 @@
+-lib bliss-framework
+
+-D HXCPP_CHECK_POINTER
+-D HXCPP_STACK_LINE
+-D analyzer-optimize
+
+-cp source
+-main Main
+
+-dce no
+
+--cmd Xcopy assets\ bin\cpp\assets\ /E /H /C /I /Y
+
+-cpp bin/cpp
+-cmd cd bin/cpp
+-cmd Main.exe
+-cmd cd ../../
