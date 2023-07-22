@@ -11,7 +11,7 @@ class Paths {
         return asset('images/$path.png');
     }
 
-    public static function getSparrowAtlas(path:String, ?library:String):AtlasFrames {
+    public static function getSparrowAtlas(path:String):AtlasFrames {
         return AtlasFrames.fromSparrow(image(path), xml('images/$path'));
     }
 
