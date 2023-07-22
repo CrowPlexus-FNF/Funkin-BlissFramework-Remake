@@ -1,16 +1,24 @@
 package funkin.scenes;
 
-import bliss.engine.utilities.MathUtil;
 import bliss.engine.Group;
 import bliss.engine.Scene;
 import bliss.engine.Sprite;
 import bliss.engine.Object2D;
+
 import bliss.engine.system.Game;
+import bliss.engine.tweens.Ease;
+import bliss.engine.tweens.Tween;
+
+import bliss.engine.utilities.MathUtil;
+import bliss.engine.utilities.BlissTimer;
+import bliss.engine.effects.FlickerEffect;
 
 class MainMenu extends Scene {
+    public var selected:Bool = false;
     public var curSelected:Int = 0;
 
     public var bg:Sprite;
+    public var magenta:Sprite;
     public var camFollow:Object2D;
 
     public var grpButtons:Group<MainMenuButton>;
@@ -22,6 +30,13 @@ class MainMenu extends Scene {
         bg.scale.set(1.2, 1.2);
         bg.scrollFactor.set(0, 0.17);
         bg.screenCenter();
+
+        add(magenta = new Sprite().loadGraphic(Paths.image("menus/menuBGDesat")));
+        magenta.scale.copyFrom(bg.scale);
+        magenta.scrollFactor.copyFrom(bg.scrollFactor);
+        magenta.screenCenter();
+        magenta.visible = false;
+        magenta.tint = 0xFFfd719b;
 
         add(grpButtons = new Group());
         addButtons();
@@ -45,10 +60,10 @@ class MainMenu extends Scene {
     }
 
     public function addButtons() {
-        grpButtons.add(new MainMenuButton("story mode"));
-        grpButtons.add(new MainMenuButton("freeplay"));
-        grpButtons.add(new MainMenuButton("credits"));
-        grpButtons.add(new MainMenuButton("options"));
+        grpButtons.add(new MainMenuButton("story mode", () -> trace("no story yet fuck you")));
+        grpButtons.add(new MainMenuButton("freeplay", () -> Game.switchScene(new FreeplayMenu())));
+        grpButtons.add(new MainMenuButton("credits", () -> trace("no credits yet fuck you")));
+        grpButtons.add(new MainMenuButton("options", () -> trace("no options yet fuck you")));
     }
 
     public function centerButtons() {
@@ -71,10 +86,23 @@ class MainMenu extends Scene {
         camFollow.position.copyFrom(curButton.getMidpoint());
         Game.sound.play(Paths.sound("menus/scrollMenu"));
     }
-
+    
     public function select() {
+        if(selected) return;
+        selected = true;
+
         final curButton:MainMenuButton = grpButtons.members[curSelected];
-        curButton.select();
+
+        FlickerEffect.flicker(magenta, 1.1, 0.12, false, true, (_) -> {
+            for(i => spr in grpButtons.members) {
+                if(curSelected == i) continue;
+                Tween.tween(spr, {alpha: 0}, 0.4, {ease: Ease.quadOut});
+            }
+            new BlissTimer().start(0.4, (tmr:BlissTimer) -> curButton.select());
+        });
+        FlickerEffect.flicker(curButton, 1, 0.06, false, false);
+
+        Game.sound.play(Paths.sound("menus/confirmMenu"));
     }
 }
 
