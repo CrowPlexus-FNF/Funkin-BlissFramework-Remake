@@ -13,13 +13,7 @@ class MainMenu extends Scene {
     public var bg:Sprite;
     public var camFollow:Object2D;
 
-    public var menuItems:Array<String> = [
-        "story mode",
-        "freeplay",
-        "credits",
-        "options"
-    ];
-    public var menuButtons:Group<Sprite>;
+    public var grpButtons:Group<MainMenuButton>;
 
     override function create() {
         super.create();
@@ -29,19 +23,9 @@ class MainMenu extends Scene {
         bg.scrollFactor.set(0, 0.17);
         bg.screenCenter();
 
-        add(menuButtons = new Group());
-
-        for(i => item in menuItems) {
-            final button:Sprite = new Sprite(Game.width * 0.5, 120 + (i * 160));
-            button.frames = Paths.getSparrowAtlas('menus/main/$item');
-            button.animation.addByPrefix("idle", "idle", 24);
-            button.animation.addByPrefix("selected", "selected", 24);
-            button.animation.play("idle");
-            button.centerOrigin();
-            button.offset.set(-button.origin.x, -button.origin.y);
-            button.scrollFactor.set();
-            menuButtons.add(button);
-        }
+        add(grpButtons = new Group());
+        addButtons();
+        centerButtons();
 
         Game.camera.follow(camFollow = new Object2D(), 0.06);
         changeSelection();
@@ -55,21 +39,75 @@ class MainMenu extends Scene {
 
         if(Game.keys.justPressed(DOWN))
             changeSelection(1);
+
+        if(Game.keys.justPressed(ENTER))
+            select();
+    }
+
+    public function addButtons() {
+        grpButtons.add(new MainMenuButton("story mode"));
+        grpButtons.add(new MainMenuButton("freeplay"));
+        grpButtons.add(new MainMenuButton("credits"));
+        grpButtons.add(new MainMenuButton("options"));
+    }
+
+    public function centerButtons() {
+        final spacing:Float = 160;
+		for(i => button in grpButtons.members) {
+			button.position.x = Game.width * 0.5;
+			button.position.y = ((Game.height * 0.5) + (i * spacing)) - ((grpButtons.length - 1) * spacing * 0.5);
+		}
     }
 
     public function changeSelection(change:Int = 0) {
-        final prevButton = menuButtons.members[curSelected];
-        prevButton.animation.play("idle");
-        prevButton.centerOrigin();
-        prevButton.offset.set(-prevButton.origin.x, -prevButton.origin.y);
+        final prevButton:MainMenuButton = grpButtons.members[curSelected];
+        prevButton.playAnim("idle");
 
-        curSelected = MathUtil.wrap(curSelected + change, 0, menuButtons.length - 1);
-
-        final curButton = menuButtons.members[curSelected];
-        curButton.animation.play("selected");
-        curButton.centerOrigin();
-        curButton.offset.set(-curButton.origin.x, -curButton.origin.y);
+        curSelected = MathUtil.wrap(curSelected + change, 0, grpButtons.length - 1);
+        
+        final curButton:MainMenuButton = grpButtons.members[curSelected];
+        curButton.playAnim("selected");
 
         camFollow.position.copyFrom(curButton.getMidpoint());
+        Game.sound.play(Paths.sound("menus/scrollMenu"));
+    }
+
+    public function select() {
+        final curButton:MainMenuButton = grpButtons.members[curSelected];
+        curButton.select();
+    }
+}
+
+class MainMenuButton extends Sprite {
+    /**
+     * The function that gets ran whenever your
+     * `ACCEPT` bind is pressed to select this button.
+     */
+    public var onSelect:Void->Void;
+
+    public function new(name:String, ?onSelect:Void->Void) {
+        super(0, 0);
+        this.onSelect = onSelect;
+
+        frames = Paths.getSparrowAtlas('menus/main/$name');
+        animation.addByPrefix("idle", "idle", 24);
+        animation.addByPrefix("selected", "selected", 24);
+        playAnim("idle");
+        scrollFactor.set();
+    }
+
+    public function playAnim(name:String, ?force:Bool = false) {
+        animation.play(name, force);
+        centerOrigin();
+        offset.set(-origin.x, -origin.y);
+    }
+
+    /**
+     * Selects this button and runs the
+     * `onSelect` callback if available.
+     */
+    public function select() {
+        if(onSelect != null)
+            onSelect();
     }
 }
