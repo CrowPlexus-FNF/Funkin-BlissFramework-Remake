@@ -9,6 +9,8 @@ class Gameplay extends Scene {
     var bfFNF2:Sprite;
 
     override function create() {
+        super.create();
+        
         add(bfFNF = new Sprite(50, 50));
         bfFNF.frames = AtlasFrames.fromSparrow("assets/images/characters/bf/normal.png", "assets/images/characters/bf/normal.xml");
         bfFNF.animation.addByPrefix("idle", "BF idle dance", 24, true);
