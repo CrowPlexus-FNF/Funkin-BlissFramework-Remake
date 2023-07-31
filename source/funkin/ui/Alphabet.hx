@@ -14,15 +14,17 @@ class Alphabet extends SpriteGroup<AlphaCharacter> {
     public var textSize(default, set):Float = 1;
     public var text(default, set):String;
 
-	public var isMenuItem:Bool = false;
-	public var targetY:Int = 0;
+    public var isMenuItem:Bool = false;
+    public var targetY:Int = 0;
 
-	public var changeX:Bool = true;
-	public var changeY:Bool = true;
+    public var changeX:Bool = true;
+    public var changeY:Bool = true;
 
-	public var rows:Int = 0;
+    public var rows:Int = 0;
 
-	public var distancePerItem:Vector2D = new Vector2D(20, 120);
+    public var distancePerItem:Vector2D = new Vector2D(20, 120);
+
+    public var alpha(default, set):Float = 1.0;
 
     public function new(x:Float = 0, y:Float = 0, text:String, ?bold:Bool = true, ?size:Float = 1) {
         super(x, y);
@@ -33,23 +35,19 @@ class Alphabet extends SpriteGroup<AlphaCharacter> {
     }
 
     override function update(elapsed:Float) {
-		if(isMenuItem) {
-			final lerpVal:Float = MathUtil.bound(elapsed * 9.6, 0, 1);
-			if(changeX)
-				position.x = MathUtil.lerp(position.x, targetY * distancePerItem.x, lerpVal);
-			if(changeY)
-				position.y = MathUtil.lerp(position.y, targetY * 1.3 * distancePerItem.y, lerpVal);
-		}
-		super.update(elapsed);
+	if (isMenuItem) {
+		final lerpVal:Float = MathUtil.bound(elapsed * 9.6, 0, 1);
+		if (changeX) position.x = MathUtil.lerp(position.x, targetY * distancePerItem.x, lerpVal);
+		if (changeY) position.y = MathUtil.lerp(position.y, targetY * 1.3 * distancePerItem.y, lerpVal);
 	}
+	super.update(elapsed);
+    }
 
     public inline function snapToPosition() {
-		if(!isMenuItem) return;
-		if(changeX)
-			position.x = targetY * distancePerItem.x;
-		if(changeY)
-			position.y = targetY * 1.3 * distancePerItem.y;
-	}
+	if (!isMenuItem) return;
+	if (changeX) position.x = targetY * distancePerItem.x;
+	if (changeY) position.y = targetY * 1.3 * distancePerItem.y;
+    }
 
     //##-- VARIABLES/FUNCTIONS YOU SHOULDN'T TOUCH --##//
     @:noCompletion
@@ -60,19 +58,25 @@ class Alphabet extends SpriteGroup<AlphaCharacter> {
     }
 
     @:noCompletion
-	private inline function set_textSize(v:Float) {
+    private inline function set_alpha(newAlpha:Float):Float {
+        for (i in members) i.alpha = newAlpha;
+        return alpha = newAlpha;
+    }
+
+    @:noCompletion
+    private inline function set_textSize(v:Float) {
         textSize = v;
         destroyLetters();
         createLetters(text);
-		return v;
-	}
+        return v;
+    }
 
-	@:noCompletion
-	override function set_tint(value:Int) {
-		for(letter in members)
-			letter.tint = value;
-		return super.set_tint(value);
-	}
+    @:noCompletion
+    override function set_tint(value:Int) {
+        for (letter in members)
+            letter.tint = value;
+        return super.set_tint(value);
+    }
 
     @:noCompletion
     private inline function destroyLetters() {
@@ -85,26 +89,26 @@ class Alphabet extends SpriteGroup<AlphaCharacter> {
     private inline function createLetters(newText:String) {
         rows = 0;
 
-		var xPos:Float = 0;
-		var consecutiveSpaces:Int = 0;
-		var rowData:Array<Float> = [];
+        var xPos:Float = 0;
+        var consecutiveSpaces:Int = 0;
+        var rowData:Array<Float> = [];
 
-        for(character in newText.split('')) {
-			if(character == '\n') {
-				xPos = 0;
-				rows++;
-				continue;
-			}
+        for (character in newText.split('')) {
+	    if (character == '\n') {
+		xPos = 0;
+		rows++;
+		continue;
+	    }
 
-			var spaceChar:Bool = (character == " ");
-			if(spaceChar) {
-				xPos += 28;
-				if(!bold && xPos >= Game.width * 0.65) {
-					xPos = 0;
-					rows++;
-				}
-				continue;
-			}
+	   var spaceChar:Bool = (character == " ");
+    	    if (spaceChar) {
+		xPos += 28;
+		if(!bold && xPos >= Game.width * 0.65) {
+			xPos = 0;
+			rows++;
+		}
+		continue;
+	    }
 
             var letter:AlphaCharacter = new AlphaCharacter(xPos, rows * AlphaCharacter.Y_PER_ROW * textSize, character, bold);
             letter.tint = tint;
@@ -116,10 +120,11 @@ class Alphabet extends SpriteGroup<AlphaCharacter> {
             rowData[rows] = xPos;
         }
 
-        for(letter in members)
-			letter.rowWidth = rowData[letter.row];
+        for (letter in members)
+            letter.rowWidth = rowData[letter.row];
 
-        if(length > 0) rows++;
+        if (length > 0)
+            rows++;
     }
 
     override function destroy() {
